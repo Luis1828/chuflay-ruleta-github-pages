@@ -76,15 +76,15 @@ h1 {
 
 .pointer {
   position: absolute;
-  top: -8px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 200px;
+  left: 98%;
+  transform: translateX(-50%) rotate(28deg);
   width: 0;
   height: 0;
   border-left: 16px solid transparent;
   border-right: 16px solid transparent;
   border-bottom: 28px solid #1c1b19;
-  z-index: 3;
+  z-index: 4;
   filter: drop-shadow(0 6px 10px rgba(0,0,0,.2));
 }
 
@@ -97,7 +97,7 @@ h1 {
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.55), 0 20px 40px rgba(0,0,0,0.12);
   background:
     conic-gradient(
-      from -18deg,
+      from -90deg,
       #efe3d0 0deg 72deg,
       #e2d4be 72deg 144deg,
       #d8ccb6 144deg 216deg,
@@ -105,6 +105,7 @@ h1 {
       #c7b7a2 288deg 360deg
     );
   transition: transform 4.8s cubic-bezier(0.12, 0.9, 0.14, 1);
+  will-change: transform;
 }
 
 .wheel::before {
@@ -113,6 +114,7 @@ h1 {
   inset: 10%;
   border-radius: 50%;
   border: 1px solid rgba(28,27,25,.17);
+  pointer-events: none;
 }
 
 .slice-label {
@@ -120,13 +122,15 @@ h1 {
   left: 50%;
   top: 50%;
   transform-origin: 0 0;
-  width: 44%;
+  width: 46%;
   text-align: center;
   font-size: clamp(11px, 2.8vw, 16px);
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: rgba(28, 27, 25, 0.95);
   text-shadow: 0 1px 0 rgba(255,255,255,.35);
+  user-select: none;
+  pointer-events: none;
 }
 
 .wheel-center {
@@ -139,6 +143,7 @@ h1 {
   border: 1px solid rgba(28, 27, 25, 0.14);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.8);
   z-index: 2;
+  pointer-events: none;
 }
 
 .wheel-center span {

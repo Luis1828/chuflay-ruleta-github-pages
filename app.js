@@ -16,37 +16,55 @@ const openLinkEl = document.getElementById("openLink");
 const copyBtn = document.getElementById("copyName");
 
 const sliceAngle = 360 / options.length;
-let currentRotation = 0;
+const wheelStartAngle = -90;     // empieza arriba
+const pointerAngle = -90;        // puntero fijo arriba
 let spinning = false;
+let currentRotation = 0;
 let lastWinner = null;
 
+function cryptoRandomInt(max) {
+  if (!Number.isInteger(max) || max <= 0) throw new Error("max debe ser un entero mayor que 0");
+
+  const range = 0x100000000;
+  const limit = Math.floor(range / max) * max;
+  const buf = new Uint32Array(1);
+  let x;
+
+  do {
+    crypto.getRandomValues(buf);
+    x = buf[0];
+  } while (x >= limit);
+
+  return x % max;
+}
+
 function buildWheelLabels() {
-  const radius = 39; // % from center
-  const offset = -90 + sliceAngle / 2;
-  wheel.querySelectorAll(".slice-label").forEach(el => el.remove());
+  wheel.querySelectorAll(".slice-label").forEach((el) => el.remove());
 
   options.forEach((opt, i) => {
     const label = document.createElement("div");
     label.className = "slice-label";
     label.textContent = opt.name;
-    const angle = offset + i * sliceAngle;
-    label.style.transform = `rotate(${angle}deg) translate(${radius}%, -50%) rotate(90deg)`;
+
+    const angle = wheelStartAngle + i * sliceAngle + sliceAngle / 2;
+    label.style.transform = `rotate(${angle}deg) translate(39%, -50%) rotate(90deg)`;
+
     wheel.appendChild(label);
   });
 }
 
-function randomIndex() {
-  const arr = new Uint32Array(1);
-  crypto.getRandomValues(arr);
-  return arr[0] % options.length;
-}
+function spinToWinner(index) {
+  const extraTurns = 6 + cryptoRandomInt(3); // 6, 7 u 8 vueltas
+  const normalized = ((currentRotation % 360) + 360) % 360;
+  const segmentCenter = wheelStartAngle + index * sliceAngle + sliceAngle / 2;
 
-function spinTo(index) {
-  const extraTurns = 5 + Math.floor(Math.random() * 2); // 5 or 6 turns
-  const centerAngle = index * sliceAngle + sliceAngle / 2;
-  const targetRotation = currentRotation + extraTurns * 360 + (360 - centerAngle);
-  currentRotation = targetRotation % 360 + Math.floor(targetRotation / 360) * 360;
+  // Queremos que el centro del segmento ganador caiga exactamente en el puntero superior.
+  // targetRotation = puntero - centro + vueltas extra
+  const delta = ((pointerAngle - segmentCenter - normalized) % 360 + 360) % 360;
+  const targetRotation = currentRotation + extraTurns * 360 + delta;
+
   wheel.style.transform = `rotate(${targetRotation}deg)`;
+  currentRotation = targetRotation;
 }
 
 function showWinner(index) {
@@ -66,25 +84,28 @@ function showWinner(index) {
 
   resultEl.classList.remove("hidden");
   statusEl.textContent = `${opt.name} fue elegido.`;
-
   resultEl.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 spinBtn.addEventListener("click", () => {
   if (spinning) return;
-  spinning = true;
 
+  spinning = true;
   spinBtn.disabled = true;
   resultEl.classList.add("hidden");
   statusEl.textContent = "Girando...";
-  const index = randomIndex();
-  spinTo(index);
+
+  // El ganador se decide antes de la animación.
+  const winnerIndex = cryptoRandomInt(options.length);
+
+  // La rueda gira hasta ese resultado exacto.
+  spinToWinner(winnerIndex);
 
   const onEnd = () => {
     wheel.removeEventListener("transitionend", onEnd);
     spinning = false;
     spinBtn.disabled = false;
-    showWinner(index);
+    showWinner(winnerIndex);
   };
 
   wheel.addEventListener("transitionend", onEnd, { once: true });
@@ -92,6 +113,7 @@ spinBtn.addEventListener("click", () => {
 
 copyBtn.addEventListener("click", async () => {
   if (!lastWinner) return;
+
   try {
     await navigator.clipboard.writeText(lastWinner.name);
     copyBtn.textContent = "Copiado";
