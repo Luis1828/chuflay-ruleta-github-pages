@@ -17,7 +17,7 @@ const copyBtn = document.getElementById("copyName");
 
 const sliceAngle = 360 / options.length;
 const wheelStartAngle = -90;     // empieza arriba
-const pointerAngle = -90;        // puntero fijo arriba
+const pointerAngle = -180;        // puntero fijo arriba
 let spinning = false;
 let currentRotation = 0;
 let lastWinner = null;
